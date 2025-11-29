@@ -261,20 +261,9 @@
                     if (contact && contact.phone_number) {
                         userPhone = contact.phone_number;
                         sendPhoneToBot(contact.phone_number);
-                    } else {
-                        // Если не получилось, просим отправить через бота (без показа ошибки)
-                        tg.sendData(JSON.stringify({
-                            action: 'request_contact'
-                        }));
-                        tg.close();
                     }
+                    // Номер всегда получается, не закрываем мини-приложение
                 });
-            } else {
-                // Если requestContact недоступен, просим отправить через бота (без показа ошибки)
-                tg.sendData(JSON.stringify({
-                    action: 'request_contact'
-                }));
-                tg.close();
             }
         }
 
@@ -325,14 +314,6 @@
             document.getElementById('code-screen').classList.add('hidden');
             document.getElementById('success-screen').classList.remove('hidden');
         }
-        
-        // Слушаем ответы от бота о статусе авторизации
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'authorization_success') {
-                document.getElementById('code-screen').classList.add('hidden');
-                document.getElementById('success-screen').classList.remove('hidden');
-            }
-        });
 
         function showMessage(text, type) {
             const container = document.getElementById('message-container');
