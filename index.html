@@ -243,15 +243,39 @@
         }
 
         function requestPhone() {
-            // Запрашиваем номер телефона через Telegram Web App API
-            tg.requestContact((contact) => {
-                if (contact && contact.phone_number) {
-                    userPhone = contact.phone_number;
-                    sendPhoneToBot(contact.phone_number);
-                } else {
-                    showMessage('Ошибка получения номера телефона', 'error');
+            // Сначала пробуем получить номер из initData
+            try {
+                const initData = tg.initDataUnsafe;
+                if (initData && initData.user && initData.user.phone_number) {
+                    userPhone = initData.user.phone_number;
+                    sendPhoneToBot(initData.user.phone_number);
+                    return;
                 }
-            });
+            } catch (e) {
+                console.log('Не удалось получить номер из initData');
+            }
+            
+            // Если номер не доступен в initData, пробуем requestContact
+            if (typeof tg.requestContact === 'function') {
+                tg.requestContact((contact) => {
+                    if (contact && contact.phone_number) {
+                        userPhone = contact.phone_number;
+                        sendPhoneToBot(contact.phone_number);
+                    } else {
+                        // Если не получилось, просим отправить через бота (без показа ошибки)
+                        tg.sendData(JSON.stringify({
+                            action: 'request_contact'
+                        }));
+                        tg.close();
+                    }
+                });
+            } else {
+                // Если requestContact недоступен, просим отправить через бота (без показа ошибки)
+                tg.sendData(JSON.stringify({
+                    action: 'request_contact'
+                }));
+                tg.close();
+            }
         }
 
         function sendPhoneToBot(phone) {
